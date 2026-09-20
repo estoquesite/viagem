@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super App de Viagem - Suíça, Alemanha e França (v4.0)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <link id="pwa-manifest" rel="manifest" href="data:application/manifest+json;charset=utf-8,{
+        %22name%22: %22Roteiro Europa - Mariana%22,
+        %22short_name%22: %22Viagem Europa%22,
+        %22start_url%22: %22.%22,
+        %22display%22: %22standalone%22,
+        %22background_color%22: %22%230f172a%22,
+        %22theme_color%22: %22%232563eb%22,
+        %22icons%22: [{%22src%22: %22https://cdn-icons-png.flaticon.com/512/3135/3135715.png%22, %22sizes%22: %22512x512%22, %22type%22: %22image/png%22}]
+    }">
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen pb-32 select-none transition-colors duration-200">
+
+    <!-- BARRA SUPERIOR FIXA -->
+    <div class="print-hidden fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white px-4 py-3 shadow-lg flex items-center justify-between gap-2 border-b border-slate-700 text-xs">
+        <div class="flex items-center gap-2">
+            <span class="font-black text-blue-400 text-sm">🇪🇺 Europa: Suíça, Alemanha e França v4.0</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="exportarWord()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl font-bold transition shadow-sm" title="Exportar para Word">
+                📥 Word
+            </button>
+            <button onclick="alternarTema()" class="bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-xl transition border border-slate-700" title="Alternar Tema">
+                🌓
+            </button>
+            <button onclick="abrirModalItem()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl font-bold transition shadow-sm flex items-center gap-1">
+                <span>➕</span> Adicionar
+            </button>
+        </div>
+    </div>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div class="max-w-4xl mx-auto p-3 sm:p-6 pt-20 space-y-6">
+        
+        <!-- DASHBOARD / RESUMO FINANCEIRO -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-md border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Total de Trechos</span>
+                <span id="stat-total" class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">0</span>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-md border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Gastos Estimados (CHF & EUR)</span>
+                <span id="stat-gastos" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">CHF 0 / €0</span>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-md border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Adquiridos / Comprados</span>
+                <span id="stat-comprados" class="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1">0 / 0</span>
+            </div>
+        </div>
+
+        <!-- SEPARADORES (TABS) -->
+        <div class="flex gap-2 bg-slate-200 dark:bg-slate-800 p-1.5 rounded-2xl text-xs font-bold">
+            <button onclick="mudarTab('itinerario')" id="tab-btn-itinerario" class="flex-1 py-2.5 rounded-xl bg-blue-600 text-white shadow-sm transition">📅 Roteiro Completo</button>
+            <button onclick="mudarTab('checklist')" id="tab-btn-checklist" class="flex-1 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition">✅ Tarefas & Compras</button>
+        </div>
+
+        <!-- TAB 1: ITINERÁRIO -->
+        <div id="tab-itinerario" class="space-y-4">
+            <div class="flex justify-between items-center px-1">
+                <h2 class="text-xs font-extrabold uppercase text-slate-600 dark:text-slate-400 tracking-wider">🗺️ Destinos, Transportes e Logísticas</h2>
+                <div class="flex gap-1">
+                    <button onclick="filtrarStatus('todos')" class="px-2.5 py-1 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-lg text-[10px] font-bold">Todos</button>
+                    <button onclick="filtrarStatus('Aguardando')" class="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 rounded-lg text-[10px] font-bold">Aguardando</button>
+                    <button onclick="filtrarStatus('Comprado')" class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-lg text-[10px] font-bold">Comprado</button>
+                </div>
+            </div>
+
+            <div id="lista-itinerario" class="space-y-3">
+                <!-- Preenchido via JS -->
+            </div>
+        </div>
+
+        <!-- TAB 2: CHECKLIST -->
+        <div id="tab-checklist" class="space-y-4 hidden">
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-3xl shadow-md border border-slate-200 dark:border-slate-700 space-y-4">
+                <div class="flex justify-between items-center border-b pb-3 dark:border-slate-700">
+                    <h2 class="text-xs font-extrabold uppercase text-slate-800 dark:text-white tracking-wider">🧳 Preparativos e Lembretes</h2>
+                    <button onclick="adicionarTarefaChecklist()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition">➕ Nova Tarefa</button>
+                </div>
+                <div id="lista-checklist" class="space-y-2 text-xs">
+                    <!-- Preenchido via JS -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL DE ADICIONAR / EDITAR ITEM -->
+    <div id="modal-item" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-3xl shadow-2xl max-w-md w-full space-y-4 border border-slate-100 dark:border-slate-700">
+            <div class="flex justify-between items-center border-b pb-3 dark:border-slate-700">
+                <h3 id="modal-titulo" class="text-base font-bold text-slate-900 dark:text-white">➕ Adicionar Trajeto</h3>
+                <button onclick="fecharModalItem()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+            
+            <form onsubmit="guardarItemModal(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="form-id">
+                <div>
+                    <label class="block font-semibold text-slate-500 mb-1">Data / Período (Ex: 1º e 2 Jan)</label>
+                    <input type="text" id="form-data" required class="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border rounded-xl dark:text-white outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-500 mb-1">Destino / Local (Ex: Zurique / Freiburg / Disney)</label>
+                    <input type="text" id="form-destino" required class="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border rounded-xl dark:text-white outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-500 mb-1">Logística / Ônibus / Trem / Detalhes</label>
+                    <textarea id="form-logistica" rows="2" class="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border rounded-xl dark:text-white outline-none" placeholder="Ex: Ônibus FlixBus, Estação de partida, RER A..."></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold text-slate-500 mb-1">Moeda</label>
+                        <select id="form-moeda" class="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border rounded-xl dark:text-white outline-none">
+                            <option value="CHF">CHF (Francos)</option>
+                            <option value="EUR">EUR (Euros)</option>
+                            <option value="BRL">BRL (Reais)</option>
+                            <option value="-">- (Nenhum)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-500 mb-1">Valor</label>
+                        <input type="text" id="form-valor" value="0" class="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border rounded-xl dark:text-white outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-500 mb-1">Estado</label>
+                    <select id="form-status" class="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border rounded-xl dark:text-white outline-none">
+                        <option value="Aguardando">Aguardando</option>
+                        <option value="Comprado">Comprado</option>
+                        <option value="Concluído">Concluído</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-sm">
+                    💾 Guardar Alterações
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT DA APLICAÇÃO -->
+    <script>
+        const CHAVE_APP = "mariana_viagem_europa_v4";
+        let filtroAtual = 'todos';
+
+        // Roteiro exato detalhado que descreveste
+        let dadosApp = {
+            itinerario: [
+                { id: 1, data: "1º e 2 Jan", destino: "Zurique (Zurich)", logistica: "Estadia em Zurique. Passeios pela cidade.", moeda: "CHF", valor: "0", status: "Comprado" },
+                { id: 2, data: "2 Jan (Tarde)", destino: "Zurique ➔ Freiburg", logistica: "Partida no final da tarde de Zurique para Freiburg (Alemanha) de trem/ônibus.", moeda: "EUR", valor: "25", status: "Aguardando" },
+                { id: 3, data: "3 Jan", destino: "Freiburg ➔ Europa-Park (Papai) ➔ Freiburg", logistica: "Idida para o parque Europa-Park (Rust) e regresso a Freiburg para dormir.", moeda: "EUR", valor: "65", status: "Aguardando" },
+                { id: 4, data: "4 Jan", destino: "Freiburg (Dia livre)", logistica: "Passar o dia em Freiburg e preparar partida no dia seguinte.", moeda: "EUR", valor: "0", status: "Aguardando" },
+                { id: 5, data: "5 e 6 Jan", destino: "Marne-la-Vallée (Disneyland Paris)", logistica: "Partida para a Disney na França. 2 dias completos nos parques.", moeda: "EUR", valor: "200", status: "Aguardando" },
+                { id: 6, data: "7 Jan", destino: "La Vallée Village (Outlet de Compras)", logistica: "Dia de compras no outlet junto à Disney (RER A sentido Val d'Europe).", moeda: "EUR", valor: "150", status: "Aguardando" },
+                { id: 7, data: "8 Jan", destino: "França ➔ Interlaken", logistica: "Partida da região de Paris em direção à Suíça (Interlaken).", moeda: "CHF", valor: "120", status: "Aguardando" },
+                { id: 8, data: "8 a 12 Jan", destino: "Interlaken (Estadia Alpina)", logistica: "5 dias em Interlaken (8, 9, 10, 11 e 12 de janeiro) explorando a região e Alpes.", moeda: "CHF", valor: "0", status: "Comprado" },
+                { id: 9, data: "12 Jan", destino: "Interlaken ➔ Zurique (Regresso)", logistica: "Partida de Interlaken de volta para Zurique (trem SBB via Berna, aprox. 2h).", moeda: "CHF", valor: "76", status: "Aguardando" }
+            ],
+            checklist: [
+                { id: 1, texto: "Comprar cartões multi-moeda (Wise / Nomad)", feito: true },
+                { id: 2, texto: "Reservar bilhetes Europa-Park", feito: false },
+                { id: 3, texto: "Reservar passes Disneyland Paris", feito: false },
+                { id: 4, texto: "Separar roupas térmicas", feito: false }
+            ]
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const temaSalvo = localStorage.getItem('tema_app_europa');
+            if (temaSalvo === 'light') {
+                document.documentElement.classList.remove('dark');
+            }
+
+            const salvo = localStorage.getItem(CHAVE_APP);
+            if (salvo) {
+                try { dadosApp = JSON.parse(salvo); } catch(e){}
+            }
+            atualizarTudo();
+        });
+
+        function salvarStorage() {
+            localStorage.setItem(CHAVE_APP, JSON.stringify(dadosApp));
+            atualizarTudo();
+        }
+
+        function alternarTema() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('tema_app_europa', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('tema_app_europa', 'dark');
+            }
+        }
+
+        function mudarTab(tab) {
+            if(tab === 'itinerario') {
+                document.getElementById('tab-itinerario').classList.remove('hidden');
+                document.getElementById('tab-checklist').classList.add('hidden');
+                document.getElementById('tab-btn-itinerario').className = "flex-1 py-2.5 rounded-xl bg-blue-600 text-white shadow-sm transition";
+                document.getElementById('tab-btn-checklist').className = "flex-1 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition";
+            } else {
+                document.getElementById('tab-itinerario').classList.add('hidden');
+                document.getElementById('tab-checklist').classList.remove('hidden');
+                document.getElementById('tab-btn-checklist').className = "flex-1 py-2.5 rounded-xl bg-blue-600 text-white shadow-sm transition";
+                document.getElementById('tab-btn-itinerario').className = "flex-1 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition";
+            }
+        }
+
+        function atualizarTudo() {
+            renderizarItinerario();
+            renderizarChecklist();
+            atualizarEstatisticas();
+        }
+
+        function atualizarEstatisticas() {
+            document.getElementById('stat-total').innerText = dadosApp.itinerario.length;
+            
+            let totalCHF = 0;
+            let totalEUR = 0;
+            dadosApp.itinerario.forEach(i => {
+                let val = parseFloat(i.valor) || 0;
+                if(i.moeda === 'CHF') totalCHF += val;
+                if(i.moeda === 'EUR') totalEUR += val;
+            });
+            document.getElementById('stat-gastos').innerText = `CHF ${totalCHF.toFixed(0)} / €${totalEUR.toFixed(0)}`;
+
+            let comprados = dadosApp.itinerario.filter(i => i.status === 'Comprado' || i.status === 'Concluído').length;
+            document.getElementById('stat-comprados').innerText = `${comprados} / ${dadosApp.itinerario.length}`;
+        }
+
+        function renderizarItinerario() {
+            const container = document.getElementById('lista-itinerario');
+            container.innerHTML = '';
+
+            let itensFiltrados = dadosApp.itinerario;
+            if(filtroAtual !== 'todos') {
+                itensFiltrados = dadosApp.itinerario.filter(i => i.status === filtroAtual);
+            }
+
+            if(itensFiltrados.length === 0) {
+                container.innerHTML = '<div class="bg-white dark:bg-slate-800 p-8 rounded-3xl text-center text-xs text-slate-400">Nenhum trajeto encontrado com este filtro.</div>';
+                return;
+            }
+
+            itensFiltrados.forEach(item => {
+                let badgeStatus = item.status === 'Comprado' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300';
+                
+                let card = document.createElement('div');
+                card.className = "bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs";
+                card.innerHTML = `
+                    <div class="space-y-1 flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold px-2 py-0.5 rounded text-[10px]">${item.data}</span>
+                            <h3 class="font-bold text-sm text-slate-900 dark:text-white">${item.destino}</h3>
+                        </div>
+                        <p class="text-slate-500 dark:text-slate-400 pl-1">🚌 ${item.logistica}</p>
+                    </div>
+                    <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-700">
+                        <span class="font-black text-slate-700 dark:text-slate-200">${item.moeda} ${item.valor}</span>
+                        <span class="${badgeStatus} font-bold px-2.5 py-1 rounded-xl text-[10px]">${item.status}</span>
+                        <div class="flex gap-1">
+                            <button onclick="editarItem(${item.id})" class="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 p-1.5 rounded-xl font-bold" title="Editar">✏️</button>
+                            <button onclick="apagarItem(${item.id})" class="bg-red-50 dark:bg-red-950/40 text-red-500 hover:bg-red-100 p-1.5 rounded-xl font-bold" title="Excluir">✕</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filtrarStatus(status) {
+            filtroAtual = status;
+            renderizarItinerario();
+        }
+
+        function abrirModalItem(id = null) {
+            document.getElementById('modal-item').classList.remove('hidden');
+            if(id) {
+                const item = dadosApp.itinerario.find(i => i.id === id);
+                if(item) {
+                    document.getElementById('modal-titulo').innerText = "✏️ Editar Trajeto";
+                    document.getElementById('form-id').value = item.id;
+                    document.getElementById('form-data').value = item.data;
+                    document.getElementById('form-destino').value = item.destino;
+                    document.getElementById('form-logistica').value = item.logistica;
+                    document.getElementById('form-moeda').value = item.moeda;
+                    document.getElementById('form-valor').value = item.valor;
+                    document.getElementById('form-status').value = item.status;
+                }
+            } else {
+                document.getElementById('modal-titulo').innerText = "➕ Adicionar Trajeto";
+                document.getElementById('form-id').value = '';
+                document.getElementById('form-data').value = '';
+                document.getElementById('form-destino').value = '';
+                document.getElementById('form-logistica').value = '';
+                document.getElementById('form-moeda').value = 'CHF';
+                document.getElementById('form-valor').value = '0';
+                document.getElementById('form-status').value = 'Aguardando';
+            }
+        }
+
+        function fecharModalItem() {
+            document.getElementById('modal-item').classList.add('hidden');
+        }
+
+        function guardarItemModal(e) {
+            e.preventDefault();
+            const id = document.getElementById('form-id').value;
+            const itemObj = {
+                id: id ? parseInt(id) : (dadosApp.itinerario.length > 0 ? Math.max(...dadosApp.itinerario.map(i => i.id)) + 1 : 1),
+                data: document.getElementById('form-data').value,
+                destino: document.getElementById('form-destino').value,
+                logistica: document.getElementById('form-logistica').value,
+                moeda: document.getElementById('form-moeda').value,
+                valor: document.getElementById('form-valor').value,
+                status: document.getElementById('form-status').value
+            };
+
+            if(id) {
+                const index = dadosApp.itinerario.findIndex(i => i.id === parseInt(id));
+                if(index !== -1) dadosApp.itinerario[index] = itemObj;
+            } else {
+                dadosApp.itinerario.push(itemObj);
+            }
+
+            fecharModalItem();
+            salvarStorage();
+        }
+
+        function editarItem(id) {
+            abrirModalItem(id);
+        }
+
+        function apagarItem(id) {
+            if(confirm("Deseja realmente excluir este trajeto do roteiro?")) {
+                dadosApp.itinerario = dadosApp.itinerario.filter(i => i.id !== id);
+                salvarStorage();
+            }
+        }
+
+        // Funções para a Checklist
+        function renderizarChecklist() {
+            const container = document.getElementById('lista-checklist');
+            container.innerHTML = '';
+            dadosApp.checklist.forEach(t => {
+                let div = document.createElement('div');
+                div.className = "flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700";
+                div.innerHTML = `
+                    <label class="flex items-center gap-2 cursor-pointer flex-1">
+                        <input type="checkbox" ${t.feito ? 'checked' : ''} onchange="alternarTarefa(${t.id})" class="w-4 h-4 accent-blue-600 rounded">
+                        <span class="${t.feito ? 'line-through opacity-50' : ''}">${t.texto}</span>
+                    </label>
+                    <button onclick="apagarTarefa(${t.id})" class="text-red-400 hover:text-red-600 px-2 font-bold">✕</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function adicionarTarefaChecklist() {
+            const texto = prompt("Qual é a nova tarefa ou item de compra?");
+            if(!texto) return;
+            const novoId = dadosApp.checklist.length > 0 ? Math.max(...dadosApp.checklist.map(t => t.id)) + 1 : 1;
+            dadosApp.checklist.push({ id: novoId, texto: texto, feito: false });
+            salvarStorage();
+        }
+
+        function alternarTarefa(id) {
+            const t = dadosApp.checklist.find(item => item.id === id);
+            if(t) {
+                t.feito = !t.feito;
+                salvarStorage();
+            }
+        }
+
+        function apagarTarefa(id) {
+            dadosApp.checklist = dadosApp.checklist.filter(t => t.id !== id);
+            salvarStorage();
+        }
+
+        function exportarWord() {
+            let htmlConteudo = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset='utf-8'><title>Roteiro Europa - Mariana</title>
+                <style>
+                    body { font-family: Arial, sans-serif; background-color: #f8fafc; color: #0f172a; }
+                    h1 { color: #1d4ed8; text-transform: uppercase; font-size: 20px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+                    th, td { border: 1px solid #cbd5e1; padding: 8px 12px; font-size: 11px; text-align: left; }
+                    th { background-color: #0f172a; color: #ffffff; }
+                </style>
+                </head>
+                <body>
+                    <h1>Roteiro de Viagem - Suíça, Alemanha e França</h1>
+                    <table>
+                        <tr>
+                            <th>Data</th>
+                            <th>Destino / Local</th>
+                            <th>Logística / Ônibus / Trem</th>
+                            <th>Valor</th>
+                            <th>Estado</th>
+                        </tr>
+            `;
+
+            dadosApp.itinerario.forEach(item => {
+                htmlConteudo += `
+                    <tr>
+                        <td><b>${item.data}</b></td>
+                        <td>${item.destino}</td>
+                        <td>${item.logistica}</td>
+                        <td>${item.moeda} ${item.valor}</td>
+                        <td>${item.status}</td>
+                    </tr>
+                `;
+            });
+
+            htmlConteudo += `
+                    </table>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob(['\ufeff' + htmlConteudo], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Roteiro_Europa_Mariana.doc';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            alert("📥 Roteiro exportado para Word com sucesso!");
+        }
+    </script>
+</body>
+</html>
